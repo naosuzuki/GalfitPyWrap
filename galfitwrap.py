@@ -24,7 +24,7 @@ def CreateFile(Iimg, region, models, sky='Default', fout=None, **kwargs):
         PLEASE be aware that if filenames are too long galfit will dump core! (psffile specifically!)
     '''
     if len(models) == 0:
-        print 'Need at least one model!'
+        print('Need at least one model!')
         return 1
     defdict = {
         'Iimg': Iimg,  # Input data image (FITS file)
@@ -85,32 +85,32 @@ def rungalfit(infile, outfile='out.fits', timeout=300, verb=True):
     if ES == 124:
         if verb:
             for l in pout:
-                print l[:-1]
+                print(l[:-1])
         if verb:
-            print 'Process timeout...'
+            print('Process timeout...')
         return pout, [-1, -1, -1, -1], [], 124
     try:
         outfit = pyfits.open(outfile)
         if len(outfit)==1:
             imgi=0
-            if verb: print 'Only the model was found, no fitting perfomed'
+            if verb: print('Only the model was found, no fitting perfomed')
         else: imgi=2
         models = []
         for mod in [x for x in outfit[imgi].header if 'COMP' in x]:
             models.append({mod: outfit[imgi].header[mod]})
             for key in [x for x in outfit[imgi].header if mod[5:]+'_' in x]:
                 if verb:
-                    print key, outfit[imgi].header[key]
+                    print(key, outfit[imgi].header[key])
                 models[-1][key] = outfit[imgi].header[key]
         return pout, outfit, models, 0
     except Exception as E:
         if verb:
             for l in pout:
-                print l[:-1]
+                print(l[:-1])
         if verb:
-            print E
+            print(E)
         if verb:
-            print 'something went wrong...'
+            print('something went wrong...')
         return pout, [-1, -1, -1, -1], [], 1
 
 
@@ -141,7 +141,7 @@ def sxmsk(scifile, infile, out='tsex', nrem=1, verb=True,retfull=False,center=No
     p.wait()
     if verb:
         for l in p.stderr.readlines():
-            print l[:-1]
+            print(l[:-1])
     mskfit = pyfits.open("{0}.fits".format(out))
     try:
         mskfit[0].data+=1
@@ -155,7 +155,7 @@ def sxmsk(scifile, infile, out='tsex', nrem=1, verb=True,retfull=False,center=No
     idx = mskfit[0].data[center[0],center[1]]
     if idx == 1:
         if verb:
-            print 'Something wrong here, no object at the center!'
+            print('Something wrong here, no object at the center!')
         return np.ones(mskfit[0].shape), []
     tmsk=np.zeros(mskfit[0].data.shape).astype(int)
     tmsk[mskfit[0].data==idx]=1
