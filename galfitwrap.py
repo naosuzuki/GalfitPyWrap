@@ -1,8 +1,9 @@
 # This is a wrapper to run galfit from python
 import numpy as np
 from subprocess import Popen, PIPE
-import pyfits
 from scipy.signal import fftconvolve
+#import pyfits
+from astropy.io import fits
 
 def CreateFile(Iimg, region, models, sky='Default', fout=None, **kwargs):
     '''
@@ -90,7 +91,7 @@ def rungalfit(infile, outfile='out.fits', timeout=300, verb=True):
             print('Process timeout...')
         return pout, [-1, -1, -1, -1], [], 124
     try:
-        outfit = pyfits.open(outfile)
+        outfit = fits.open(outfile)
         if len(outfit)==1:
             imgi=0
             if verb: print('Only the model was found, no fitting perfomed')
@@ -142,7 +143,7 @@ def sxmsk(scifile, infile, out='tsex', nrem=1, verb=True,retfull=False,center=No
     if verb:
         for l in p.stderr.readlines():
             print(l[:-1])
-    mskfit = pyfits.open("{0}.fits".format(out))
+    mskfit = fits.open("{0}.fits".format(out))
     try:
         mskfit[0].data+=1
     except:
@@ -150,7 +151,7 @@ def sxmsk(scifile, infile, out='tsex', nrem=1, verb=True,retfull=False,center=No
         mskfit[0].data+=1
     amsk = np.ones(mskfit[0].data.shape)
     amsk[mskfit[0].data != 1] = 0
-    sexcat = pyfits.open("{0}.cat".format(out))[2].data
+    sexcat = fits.open("{0}.cat".format(out))[2].data
     if center is None:center=[mskfit[0].data.shape[0]/2, mskfit[0].data.shape[1]/2]
     idx = mskfit[0].data[center[0],center[1]]
     if idx == 1:
@@ -183,7 +184,7 @@ def sxmsk(scifile, infile, out='tsex', nrem=1, verb=True,retfull=False,center=No
                        5: '4 1', 9: '{0} 1'.format(sexcat['ELONGATION'][jidx]**-1), 10: '{0} 1'.format(sexcat['THETA_IMAGE'][jidx]-90), 'Z': 0,
                        'mskidx': jidx+2,'origin':txt[i]} for jidx in jidxs])
     if getsky:
-        sexcat = pyfits.open("{0}.cat".format(out))[1].data[0][0]
+        sexcat = fits.open("{0}.cat".format(out))[1].data[0][0]
         skyo={}
         for l in sexcat:
             if 'EXPTIME' in l:
@@ -210,18 +211,18 @@ def sxmsk(scifile, infile, out='tsex', nrem=1, verb=True,retfull=False,center=No
 def maskfiles(sci, msk, wht=None, fout=["tsci.fits", "twht.fits"], verb=True):
     overify='fix' if verb else 'silentfix'
     Popen(["rm", fout[0]], stderr=PIPE)
-    scifits = pyfits.open(sci)
+    scifits = fits.open(sci)
     scifits[0].data *= msk
     scifits.writeto(fout[0], clobber=True,output_verify=overify)
     scifits.close()
     if wht is not None:
         Popen(["rm", fout[1]], stderr=PIPE)
-        whtfits = pyfits.open(wht)
+        whtfits = fits.open(wht)
         whtfits[0].data *= msk
     else:
         wht=np.zeros(msk.shape)
         wht[msk!=1]=1
-        whtfits = pyfits.HDUList([pyfits.PrimaryHDU(wht)])
+        whtfits = fits.HDUList([fits.PrimaryHDU(wht)])
     whtfits.writeto(fout[1], clobber=True,output_verify=overify)
     whtfits.close()
     return fout
